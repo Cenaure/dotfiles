@@ -1,0 +1,97 @@
+/* ── Hardcoded variables (замени значения под себя) ──── */
+/* fntSize=16, BtnCol=white, active_rad=12, button_rad=8, mgn=10, hvr=5 */
+
+* {
+    background-image: none;
+    font-size: 16px;
+}
+
+@define-color bar-bg rgba(0, 0, 0, 0);
+@define-color main-bg #11111b;
+@define-color main-fg #cdd6f4;
+@define-color wb-act-bg #a6adc8;
+@define-color wb-act-fg #313244;
+@define-color wb-hvr-bg #f5c2e7;
+@define-color wb-hvr-fg #313244;
+
+window {
+    background-color: rgba(19, 12, 23, 0.2);
+}
+
+button {
+    color: white;
+    background-color: @main-bg;
+    outline-style: none;
+    border: none;
+    border-width: 0px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 20%;
+    border-radius: 18px;
+    box-shadow: none;
+    text-shadow: none;
+    animation: gradient_f 20s ease-in infinite;
+    margin: 30px;
+}
+
+button:focus {
+    background-color: @wb-act-bg;
+    background-size: 30%;
+}
+
+button:hover {
+    background-color: @wb-hvr-bg;
+    background-size: 40%;
+    border-radius: 12px;
+    animation: gradient_f 20s ease-in infinite;
+    transition: all 0.3s cubic-bezier(.55,0.0,.28,1.682);
+}
+
+/* ── Icons — относительный путь (icons/ рядом с этим файлом) ── */
+#lock {
+    background-image: image(url("icons/lock.png"));
+
+   }
+#lock:hover {
+    background-image: image(url("icons/lock-hover.png"));
+}
+
+#logout {
+    background-image: image(url("icons/logout.png"));
+
+    }
+#logout:hover {
+    background-image: image(url("icons/logout-hover.png"));
+}
+
+#suspend {
+    background-image: image(url("icons/sleep.png"));
+
+   }
+#suspend:hover {
+    background-image: image(url("icons/sleep-hover.png"));
+}
+
+#shutdown {
+    background-image: image(url("icons/power.png"));
+
+}
+#shutdown:hover {
+    background-image: image(url("icons/power-hover.png"));
+}
+
+#hibernate {
+    background-image: image(url("icons/hibernate.png"));
+
+}
+#hibernate:hover {
+    background-image: image(url("icons/hibernate-hover.png"));
+}
+
+#reboot {
+    background-image: image(url("icons/restart.png"));
+
+}
+#reboot:hover {
+    background-image: image(url("icons/restart-hover.png"));
+}
