@@ -14,17 +14,13 @@ Item {
   readonly property var entry: Services.Theme.themeAt(root.themeIndex)
   readonly property string themeName: root.entry ? root.entry.name : ""
   readonly property url wallpaperUrl: root.entry ? root.entry.wallpaperUrl : ""
-  readonly property bool thumbReady: thumbLoader.item !== null
-    && thumbLoader.item.status === Image.Ready
-  readonly property bool isApplied: root.entry
-    && root.entry.themeId === Services.Theme.currentThemeId
+  readonly property bool thumbReady: thumbLoader.item !== null && thumbLoader.item.status === Image.Ready
+  readonly property bool isApplied: root.entry && root.entry.themeId === Services.Theme.currentThemeId
 
   signal clicked
 
   implicitWidth: ThemeSwitcherConfig.thumbWidth
-  implicitHeight: ThemeSwitcherConfig.thumbHeight
-    + ThemeSwitcherConfig.captionSpacing
-    + ThemeSwitcherConfig.captionSize + 4
+  implicitHeight: ThemeSwitcherConfig.thumbHeight + ThemeSwitcherConfig.captionSpacing + ThemeSwitcherConfig.captionSize + 4
 
   scale: root.current ? 1 : ThemeSwitcherConfig.thumbInactiveScale
   opacity: root.current ? 1 : ThemeSwitcherConfig.thumbInactiveOpacity
@@ -37,7 +33,9 @@ Item {
   }
 
   Behavior on opacity {
-    NumberAnimation { duration: ThemeSwitcherConfig.animationDuration }
+    NumberAnimation {
+      duration: ThemeSwitcherConfig.animationDuration
+    }
   }
 
   Item {
@@ -85,9 +83,7 @@ Item {
       anchors.fill: parent
       radius: ThemeSwitcherConfig.thumbRadius
       visible: !root.thumbReady
-      color: root.entry && root.entry.colors
-        ? root.entry.colors.surface
-        : ThemeSwitcherConfig.bubbleColor
+      color: root.entry && root.entry.colors ? root.entry.colors.surface : ThemeSwitcherConfig.bubbleColor
 
       Text {
         anchors.centerIn: parent
@@ -107,7 +103,9 @@ Item {
       opacity: root.current ? 1 : 0
 
       Behavior on opacity {
-        NumberAnimation { duration: ThemeSwitcherConfig.animationDuration }
+        NumberAnimation {
+          duration: ThemeSwitcherConfig.animationDuration
+        }
       }
     }
   }
@@ -120,9 +118,7 @@ Item {
     }
     width: ThemeSwitcherConfig.thumbWidth
     text: root.themeName
-    color: root.current
-      ? ThemeSwitcherConfig.titleColor
-      : ThemeSwitcherConfig.subtitleColor
+    color: root.current ? ThemeSwitcherConfig.titleColor : ThemeSwitcherConfig.subtitleColor
     font.family: ThemeSwitcherConfig.fontFamily
     font.pixelSize: ThemeSwitcherConfig.captionSize
     font.weight: root.current ? Font.DemiBold : Font.Normal

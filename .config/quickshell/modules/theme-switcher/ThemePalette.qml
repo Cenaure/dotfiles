@@ -11,8 +11,7 @@ Column {
 
   readonly property var entry: Services.Theme.themeAt(root.themeIndex)
   readonly property var colors: root.entry ? root.entry.colors : null
-  readonly property bool isApplied: root.entry
-    && root.entry.themeId === Services.Theme.currentThemeId
+  readonly property bool isApplied: root.entry && root.entry.themeId === Services.Theme.currentThemeId
 
   spacing: 12
 
@@ -48,10 +47,7 @@ Column {
     Repeater {
       // "background" is deliberately omitted: it is "transparent" in every
       // theme, which would render as an empty hole in the swatch row.
-      model: root.colors
-        ? [root.colors.surface, root.colors.foreground, root.colors.active,
-           root.colors.secondary, root.colors.disabled]
-        : []
+      model: root.colors ? [root.colors.surface, root.colors.foreground, root.colors.active, root.colors.secondary, root.colors.disabled] : []
 
       delegate: Rectangle {
         required property string modelData

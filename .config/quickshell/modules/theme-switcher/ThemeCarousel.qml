@@ -15,9 +15,7 @@ ListView {
   spacing: ThemeSwitcherConfig.thumbSpacing
   clip: true
 
-  implicitHeight: ThemeSwitcherConfig.thumbHeight
-    + ThemeSwitcherConfig.captionSpacing
-    + ThemeSwitcherConfig.captionSize + 4
+  implicitHeight: ThemeSwitcherConfig.thumbHeight + ThemeSwitcherConfig.captionSpacing + ThemeSwitcherConfig.captionSize + 4
 
   model: Services.Theme.themeCount
 
@@ -45,7 +43,7 @@ ListView {
   }
 
   WheelHandler {
-    onWheel: (event) => {
+    onWheel: event => {
       if (event.angleDelta.y < 0)
         root.incrementCurrentIndex();
       else

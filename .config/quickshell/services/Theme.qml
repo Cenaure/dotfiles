@@ -23,7 +23,6 @@ Singleton {
   property color secondary: theme.adapter.colors.secondary
   property color disabled: theme.adapter.colors.disabled
 
-
   // awww transition used when a theme is applied. Kept here rather than in a
   // config singleton so that Theme has no import cycle with the configs, which
   // read colors from it.
@@ -150,47 +149,74 @@ Singleton {
   // --------------------------------------------------------------- apply --
 
   function delay(ms, callback) {
-      var timer = Qt.createQmlObject('import QtQuick 2.0; Timer {}', root);
-      timer.interval = ms;
-      timer.repeat = false;
-      timer.triggered.connect(function() {
-          callback();
-          timer.destroy(); // Clean up timer object after execution
-      });
-      timer.start();
+    var timer = Qt.createQmlObject('import QtQuick 2.0; Timer {}', root);
+    timer.interval = ms;
+    timer.repeat = false;
+    timer.triggered.connect(function () {
+      callback();
+      timer.destroy(); // Clean up timer object after execution
+    });
+    timer.start();
   }
 
   function setTheme(themeId) {
-      if (!themeId) return;
+    if (!themeId)
+      return;
 
-      state.adapter.currentThemeId = themeId;
-      state.writeAdapter();
+    state.adapter.currentThemeId = themeId;
+    state.writeAdapter();
 
-      delay(10, function() {
-          root.applyWallpaper(themeId);
-          root.applySystemTheme(themeId);
-      });
+    delay(10, function () {
+      root.applyWallpaper();
+      root.applySystemTheme(themeId);
+    });
   }
 
-  Process { id: wallpaperProcess }
+  Process {
+    id: wallpaperProcess
+  }
 
   function applyWallpaper() {
     const path = root.wallpaperUrlFor(theme.adapter.wallpaper);
     if (!path)
       return;
 
-    wallpaperProcess.command = [
-      "awww", "img", path,
-      "--transition-type", "random",
-      "--transition-fps", String(root.wallpaperTransitionFps),
-    ];
-    console.log(wallpaperProcess.command )
+    wallpaperProcess.command = ["awww", "img", path, "--transition-type", root.wallpaperTransition, "--transition-fps", String(root.wallpaperTransitionFps), "--transition-duration", root.wallpaperTransitionDuration,];
     wallpaperProcess.running = true;
   }
 
-  // Runs script to apply theme pallete on not related to quickshell apps
-  Process { id: systemThemeProcess }
+  // Repaints everything the theme reaches outside quickshell. The script is a
+  // dispatcher: it runs every script in scripts/themes/, one per application,
+  // so teaching the theme about another program means dropping a file there.
+  //
+  // Failures are surfaced rather than swallowed. A broken script here is
+  // otherwise invisible, because the shell itself has already recoloured and
+  // only the other application is left looking wrong.
+  Process {
+    id: systemThemeProcess
+
+    stderr: StdioCollector {
+      onStreamFinished: {
+        const message = this.text.trim();
+        if (message !== "")
+          console.warn("apply-theme:", message);
+      }
+    }
+  }
+
   function applySystemTheme(themeId) {
-    // run some script
+    if (!themeId)
+      return;
+
+    systemThemeProcess.command = [root.scriptPath("apply-theme.bash"), themeId];
+    systemThemeProcess.running = true;
+  }
+
+  // Resolved relative to this file rather than through $HOME, so the shell can
+  // be run from a checkout that is not the installed one. Qt hands back a
+  // file:// URL and the process needs a plain path, the same unwrapping
+  // wallpaperUrlFor has to do.
+  function scriptPath(name) {
+    return Qt.resolvedUrl("../scripts/" + name).toString().replace(/^file:\/\//, "");
   }
 }
