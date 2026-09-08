@@ -1,10 +1,11 @@
 {
     "recentAppIds": [
+        "spotify",
+        "jetbrains-webstorm",
+        "code-oss",
         "vesktop",
         "kitty",
         "gpu-screen-recorder",
-        "steam",
-        "jetbrains-webstorm",
-        "spotify"
+        "steam"
     ]
 }

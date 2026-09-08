@@ -53,7 +53,6 @@ REPO_PACKAGES=(
 # AUR. yay and paru resolve repository packages too, so when one is present it
 # gets the whole list and this split only matters for the pacman-only path.
 AUR_PACKAGES=(
-    wlogout
     hyprshot-git
     vicinae-bin
     adw-gtk3

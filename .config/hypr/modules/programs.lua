@@ -7,4 +7,5 @@ M.fileManager = "nautilus"
 M.menu = "qs ipc call appLauncher toggle"
 M.themeSwitcher = "qs ipc call themeSwitcher toggle"
 M.notificationsCenter = "qs ipc call notificationCenter toggle"
+M.powerMenu = "qs ipc call powerMenu toggle"
 return M
