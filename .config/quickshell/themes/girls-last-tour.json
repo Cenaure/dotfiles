@@ -1,13 +1,21 @@
 {
-    "name": "Girls Last Tour",
-    "wallpaper": "girls_last_tour.png",
-    "colors": {
-        "background": "transparent",
-        "surface": "#2a2723",
-        "foreground": "#332f27",
-        "foregroundSurface": "#e0d7c6",
-        "active": "#d9a441",
-        "secondary": "#9a896f",
-        "disabled": "#6b6459"
+  "name": "Girls Last Tour",
+  "wallpaper": "girls_last_tour.png",
+  "colors": {
+    "background": "transparent",
+    "surface": "#2a2723",
+    "foreground": "#332f27",
+    "foregroundSurface": "#e0d7c6",
+    "active": "#d9a441",
+    "secondary": "#9a896f",
+    "disabled": "#6b6459",
+
+    "kitty": {
+      "surface": "#29221d",
+      "foreground": "#ede3d1",
+      "active": "#d9a441",
+      "secondary": "#6e6251",
+      "disabled": "#4f4b46"
     }
+  }
 }
