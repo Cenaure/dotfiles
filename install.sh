@@ -35,6 +35,9 @@ REPO_PACKAGES=(
     cliphist
     # qalc, the calculator behind the launcher's math results.
     libqalculate
+    # Read by scripts/themes/change-kitty-colors.bash to turn a theme's JSON
+    # into kitty's colour overrides.
+    jq
     nautilus
     brightnessctl
     playerctl
@@ -178,6 +181,38 @@ install_packages() {
     fi
 }
 
+# ------------------------------------------------------- conflicting daemons --
+
+# Only one process can own org.freedesktop.Notifications on the session bus, and
+# the winner is simply whoever asked first. Arch ships dunst as a D-Bus activated
+# service, so the first program to send a notification starts it --- and from
+# then on quickshell's notification server gets nothing and you keep seeing
+# dunst's popups instead of the ones in modules/notifications.
+#
+# Masking is what actually stops that, rather than disabling: dunst's D-Bus
+# service file delegates activation to systemd (SystemdService=dunst.service),
+# and a masked unit cannot be activated. Undo with:
+#
+#     systemctl --user unmask dunst.service
+#
+disable_notification_daemons() {
+    command -v systemctl >/dev/null || return 0
+
+    local daemon
+    for daemon in dunst mako swaync; do
+        systemctl --user list-unit-files "$daemon.service" --no-legend 2>/dev/null \
+            | grep -q . || continue
+
+        if [[ "$(systemctl --user is-enabled "$daemon.service" 2>/dev/null)" != masked ]]; then
+            info "${BLUE}::${RESET} Masking $daemon, so quickshell can own the notification bus..."
+            systemctl --user mask "$daemon.service" >/dev/null
+        fi
+
+        systemctl --user stop "$daemon.service" >/dev/null 2>&1 || true
+        pkill -x "$daemon" 2>/dev/null || true
+    done
+}
+
 # --------------------------------------------------------------------- main --
 
 packages=false
@@ -288,6 +323,8 @@ fi
 for i in "${!configs[@]}"; do
     deploy "${configs[$i]}" "${actions[$i]}"
 done
+
+disable_notification_daemons
 
 info "${GREEN}Done.${RESET} ${#configs[@]} config(s) linked into $CONFIG_DIR."
 
