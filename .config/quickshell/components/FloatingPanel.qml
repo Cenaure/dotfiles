@@ -49,8 +49,7 @@ Scope {
   property real anchorRadius: root.anchorHeight / 2
   // Top edge of that widget. The rectangle keeps this edge fixed and grows
   // downward, which is what anchors the expansion to the bar.
-  property real anchorY: BarConfig.margin[0]
-    + (BarConfig.height - root.anchorHeight) / 2
+  property real anchorY: BarConfig.margin[0] + (BarConfig.height - root.anchorHeight) / 2
 
   // Flip the whole thing: pin the rectangle's bottom edge anchorMargin above
   // the bottom of the screen and let it grow upward instead. anchorY is unused
@@ -78,14 +77,23 @@ Scope {
 
   property int duration: 360
   property bool closeOnClickOutside: true
+
+  // An interactive panel owns the screen while it is up: it takes the keyboard
+  // and swallows every click, so clicking away dismisses it. That is right for
+  // something you opened deliberately, like the launcher.
+  //
+  // A passive one is just something on screen. It never takes the keyboard, and
+  // only the panel itself takes clicks --- everything around it behaves as if
+  // the surface were not there. Use it for anything that appears on its own
+  // rather than because you asked for it.
+  property bool interactive: true
   property string panelNamespace: "quickshell:floatingPanel"
 
-  // Hyprland runs its own binds before the key ever reaches a client, so an
-  // exclusive keyboard grab does not stop SUPER+1 pulling the workspace out
-  // from under an open panel. Switching Hyprland into a submap does: every
-  // bind in keybinds.lua is submap_universal except the workspace ones, so
-  // those are the only thing this suppresses. Set it to "" to opt out.
-  property string submap: "panel"
+  // Hyprland restores focus to whatever held it when an exclusive keyboard
+  // grab began. Change workspace while a panel is open and that restore drags
+  // you back to where you opened it, undoing the switch. With this on, the
+  // panel remembers where you actually were and puts it back.
+  property bool keepWorkspace: true
 
   signal keyPressed(var event)
 
@@ -105,8 +113,7 @@ Scope {
 
   // -------------------------------------------------------------- internals --
 
-  readonly property real panelHeight: Math.max(root.anchorHeight,
-    contentItem.implicitHeight + root.padding * 2)
+  readonly property real panelHeight: Math.max(root.anchorHeight, contentItem.implicitHeight + root.padding * 2)
 
   property bool windowVisible: false
 
@@ -118,25 +125,74 @@ Scope {
       hideDelay.restart();
     }
 
-    root.enterSubmap(root.expanded ? root.submap : "reset");
+    if (!root.expanded) {
+      root.closedOnWorkspace = Hyprland.focusedWorkspace?.id ?? -1;
+
+      if (root.interactive && root.keepWorkspace && root.closedOnWorkspace >= 0)
+        workspaceGuard.restart();
+    }
   }
 
-  function enterSubmap(name) {
-    if (!root.submap)
+  // Where we were when the panel collapsed, which is where we should still be
+  // once it is gone.
+  property int closedOnWorkspace: -1
+
+  // How long after closing we keep watching for Hyprland's focus restore. It
+  // arrives a compositor round trip after the keyboard grab is dropped, so this
+  // only has to outlast that --- long enough to catch it, short enough that a
+  // workspace switch you make yourself right after closing is your own.
+  property int workspaceGuardWindow: 350
+
+  // Armed for that window, and disarmed the moment the restore is corrected.
+  readonly property bool guardingWorkspace: workspaceGuard.running
+
+  function keepWorkspacePut() {
+    // A passive panel never grabs the keyboard, so there is no focus for
+    // Hyprland to restore and nothing to correct.
+    if (!root.interactive || !root.keepWorkspace || root.closedOnWorkspace < 0)
       return;
 
+    const current = Hyprland.focusedWorkspace?.id ?? -1;
+
+    if (current < 0 || current === root.closedOnWorkspace)
+      return;
+
+    workspaceGuard.stop();
+
     // A Lua config evaluates the dispatch string as Lua, where the classic
-    // "submap panel" form is a syntax error --- the same split the bar's
+    // "workspace N" form is a syntax error --- the same split the bar's
     // workspace switching has to make.
-    Hyprland.dispatch(BarConfig.hyprlandLuaConfig
-      ? `hl.dsp.submap(${JSON.stringify(name)})`
-      : `submap ${name}`);
+    Hyprland.dispatch(BarConfig.hyprlandLuaConfig ? `hl.dsp.focus({ workspace = ${root.closedOnWorkspace} })` : `workspace ${root.closedOnWorkspace}`);
   }
 
   Timer {
     id: hideDelay
     interval: root.duration + 120
     onTriggered: root.windowVisible = false
+  }
+
+  // The restore we are undoing is triggered by the keyboard grab being dropped,
+  // which happens as soon as the panel collapses --- not when the surface is
+  // finally hidden at the end of the close animation. Waiting for the latter is
+  // what made the wrong workspace sit on screen for half a second before
+  // snapping back. So: arm a short window at collapse and react to the focus
+  // change itself, which puts the correction a frame after the mistake instead
+  // of after the animation.
+  Timer {
+    id: workspaceGuard
+    interval: root.workspaceGuardWindow
+    // A backstop for a restore that arrives later than the window, which is the
+    // case the old fixed delay was really covering.
+    onTriggered: root.keepWorkspacePut()
+  }
+
+  Connections {
+    target: Hyprland
+    enabled: root.guardingWorkspace
+
+    function onFocusedWorkspaceChanged() {
+      root.keepWorkspacePut();
+    }
   }
 
   PanelWindow {
@@ -158,9 +214,18 @@ Scope {
 
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: root.panelNamespace
-    WlrLayershell.keyboardFocus: root.expanded
-      ? WlrKeyboardFocus.Exclusive
-      : WlrKeyboardFocus.None
+    WlrLayershell.keyboardFocus: root.interactive && root.expanded ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+
+    // Everything outside the panel is cut out of the input region, so the
+    // compositor routes those clicks to whatever is underneath. An interactive
+    // panel keeps the default region --- the whole surface --- because
+    // swallowing outside clicks is how click-to-dismiss works.
+    mask: root.interactive ? null : passiveRegion
+
+    Region {
+      id: passiveRegion
+      item: shell
+    }
 
     FocusScope {
       anchors.fill: parent
@@ -177,7 +242,7 @@ Scope {
 
       MouseArea {
         anchors.fill: parent
-        enabled: root.closeOnClickOutside
+        enabled: root.interactive && root.closeOnClickOutside
         onClicked: root.close()
       }
 
@@ -195,18 +260,16 @@ Scope {
         bottomRightRadius: shell.bottomLeftRadius
         x: (parent.width - width) / 2
         // Growing upward means keeping the bottom edge put, which falls out of
-        // subtracting the animating height from a fixed baseline. When sliding,
-        // the closed position is instead entirely past that edge, so opening is
-        // one straight translation into place.
-        y: {
-          if (!root.growUp)
-            return root.anchorY;
-
-          if (root.slideIn && !root.expanded)
-            return parent.height;
-
-          return parent.height - root.anchorMargin - height;
-        }
+        // subtracting the animating height from a fixed baseline.
+        //
+        // Deliberately not animated, and deliberately not where a sliding panel
+        // parks while closed. This depends on parent.height, which is zero
+        // until the compositor has given the surface a size --- so on the first
+        // open it changes from a nonsense value to the real one. An animation
+        // here would play that correction out on screen as the panel dropping
+        // in from the top. The slide lives in the transform below instead,
+        // which depends on nothing the compositor has to supply.
+        y: root.growUp ? parent.height - root.anchorMargin - height : root.anchorY
 
         color: root.panelColor
         // Starts fully transparent so the real widget shows through underneath
@@ -254,12 +317,21 @@ Scope {
           }
         }
 
-        Behavior on y {
-          enabled: root.slideIn
-          NumberAnimation {
-            duration: root.duration
-            // Decisive on the way in, unhurried on the way out.
-            easing.type: root.expanded ? Easing.OutQuint : Easing.InCubic
+        // The slide itself: an offset off the resting position rather than a
+        // second position to animate towards, so the only thing that can move
+        // the panel is opening and closing it. Parked, it sits exactly its own
+        // height plus its margin below where it will come to rest, which puts
+        // it fully past the bottom edge.
+        transform: Translate {
+          y: root.slideIn && !root.expanded ? shell.height + root.anchorMargin : 0
+
+          Behavior on y {
+            enabled: root.slideIn
+            NumberAnimation {
+              duration: root.duration
+              // Decisive on the way in, unhurried on the way out.
+              easing.type: root.expanded ? Easing.OutQuint : Easing.InCubic
+            }
           }
         }
 

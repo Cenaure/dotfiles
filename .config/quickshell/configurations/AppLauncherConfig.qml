@@ -44,8 +44,7 @@ Singleton {
   // scrolls instead. Derived from the row metrics rather than hardcoded, so
   // retuning rowHeight keeps the arithmetic honest.
   readonly property int visibleRows: 7
-  readonly property int listHeight:
-    visibleRows * rowHeight + (visibleRows - 1) * rowSpacing
+  readonly property int listHeight: visibleRows * rowHeight + (visibleRows - 1) * rowSpacing
   readonly property int highlightDuration: 150
 
   // Colors. The panel is an opaque surface over an arbitrary wallpaper, so
@@ -59,11 +58,7 @@ Singleton {
 
   // Selection capsule: the accent at low alpha reads as a highlight without
   // fighting the row text for attention.
-  readonly property color selectionColor: Qt.rgba(
-    Services.Theme.active.r,
-    Services.Theme.active.g,
-    Services.Theme.active.b,
-    0.18)
+  readonly property color selectionColor: Qt.rgba(Services.Theme.active.r, Services.Theme.active.g, Services.Theme.active.b, 0.18)
 
   // Rows that are not applications (the calculator answer, clipboard entries,
   // the Clipboard History entry itself) draw a glyph where an app icon goes.

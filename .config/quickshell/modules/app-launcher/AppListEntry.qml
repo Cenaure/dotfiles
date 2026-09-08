@@ -21,16 +21,12 @@ Item {
 
   readonly property var entry: root.modelData ? root.modelData.entry : null
   readonly property bool isApp: root.modelData ? root.modelData.kind === "app" : false
-  readonly property string glyph: root.modelData && root.modelData.glyph
-    ? root.modelData.glyph
-    : ""
+  readonly property string glyph: root.modelData && root.modelData.glyph ? root.modelData.glyph : ""
 
   // Empty when the icon theme has nothing for this entry, which is the cue to
   // fall back to a glyph. Checked up front rather than reacting to a failed
   // load, so the row never flashes a broken image.
-  readonly property string iconSource: root.isApp && root.entry && root.entry.icon
-    ? Quickshell.iconPath(root.entry.icon, true)
-    : ""
+  readonly property string iconSource: root.isApp && root.entry && root.entry.icon ? Quickshell.iconPath(root.entry.icon, true) : ""
 
   readonly property string caption: {
     if (!root.modelData)

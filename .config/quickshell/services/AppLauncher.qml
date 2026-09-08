@@ -102,17 +102,19 @@ Singleton {
 
   // Built-ins that behave like applications: searchable by name, launchable
   // with Enter, but handled inside the launcher instead of by exec.
-  readonly property var actionRecords: [{
-    kind: "action",
-    action: "clipboard",
-    id: "action:clipboard",
-    name: "Clipboard History",
-    generic: "Browse and copy earlier clipboard entries",
-    comment: "",
-    keywords: "clipboard history paste copy clip cliphist",
-    command: "",
-    glyph: "\ue14f"
-  }]
+  readonly property var actionRecords: [
+    {
+      kind: "action",
+      action: "clipboard",
+      id: "action:clipboard",
+      name: "Clipboard History",
+      generic: "Browse and copy earlier clipboard entries",
+      comment: "",
+      keywords: "clipboard history paste copy clip cliphist",
+      command: "",
+      glyph: "\ue14f"
+    }
+  ]
 
   // One plain JS record per launchable desktop entry. fuzzysort searches these
   // rather than the DesktopEntry objects themselves: it prepares and caches its
@@ -218,16 +220,18 @@ Singleton {
     if (root.mode !== "apps" || !Calculator.hasResult)
       return [];
 
-    return [{
-      kind: "math",
-      id: "math",
-      name: Calculator.result,
-      generic: "Enter to copy",
-      comment: "",
-      keywords: "",
-      command: "",
-      glyph: "\uea5f"
-    }];
+    return [
+      {
+        kind: "math",
+        id: "math",
+        name: Calculator.result,
+        generic: "Enter to copy",
+        comment: "",
+        keywords: "",
+        command: "",
+        glyph: "\uea5f"
+      }
+    ];
   }
 
   readonly property var results: {
@@ -252,11 +256,12 @@ Singleton {
     for (let i = 0; i < matches.length; i++) {
       const record = matches[i].obj;
       const at = root.recencyOf(record.id);
-      const bonus = at === -1
-        ? 0
-        : root.recencyWeight * (1 - at / root.recentLimit);
+      const bonus = at === -1 ? 0 : root.recencyWeight * (1 - at / root.recentLimit);
 
-      ranked.push({ record: record, score: matches[i].score + bonus });
+      ranked.push({
+        record: record,
+        score: matches[i].score + bonus
+      });
     }
 
     ranked.sort((a, b) => b.score - a.score);
@@ -288,12 +293,10 @@ Singleton {
       if (record.action === "clipboard")
         root.openClipboard();
       return;
-
     case "math":
       ClipboardHistory.copyText(record.name);
       root.close();
       return;
-
     case "clip":
       ClipboardHistory.copyEntry(record.clipId);
       root.close();

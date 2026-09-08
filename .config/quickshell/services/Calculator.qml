@@ -84,9 +84,7 @@ Singleton {
 
     // qalc echoes the input back when it cannot evaluate it, so an answer that
     // is just the question restated is not an answer.
-    if (output === ""
-        || /^error/i.test(output)
-        || root.compact(output) === root.compact(root.source())) {
+    if (output === "" || /^error/i.test(output) || root.compact(output) === root.compact(root.source())) {
       root.result = "";
       return;
     }

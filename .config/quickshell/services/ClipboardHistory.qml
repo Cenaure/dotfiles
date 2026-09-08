@@ -55,7 +55,9 @@ Singleton {
     return parsed;
   }
 
-  Process { id: restore }
+  Process {
+    id: restore
+  }
 
   function copyEntry(id) {
     // The id goes through as an argument rather than being spliced into the
@@ -64,7 +66,9 @@ Singleton {
     restore.running = true;
   }
 
-  Process { id: copy }
+  Process {
+    id: copy
+  }
 
   function copyText(text) {
     if (!text)

@@ -68,9 +68,8 @@ Scope {
 
           // Search glass in app mode, clipboard in clipboard mode: the field
           // is the only thing saying which list you are looking at.
-          text: root.launcher.mode === "clipboard"
-            ? "\ue14f"  // content_paste
-            : "\ue8b6"  // search
+          text: root.launcher.mode === "clipboard" ? "\ue14f"  // content_paste
+          : "\ue8b6"  // search
           font.family: AppLauncherConfig.iconFontFamily
           font.pixelSize: AppLauncherConfig.searchIconSize
           color: AppLauncherConfig.accentColor
@@ -102,9 +101,7 @@ Scope {
             anchors.fill: parent
             visible: searchInput.text.length === 0
 
-            text: root.launcher.mode === "clipboard"
-              ? AppLauncherConfig.clipboardPlaceholder
-              : AppLauncherConfig.searchPlaceholder
+            text: root.launcher.mode === "clipboard" ? AppLauncherConfig.clipboardPlaceholder : AppLauncherConfig.searchPlaceholder
             color: AppLauncherConfig.captionColor
             font: searchInput.font
             verticalAlignment: Text.AlignVCenter
@@ -226,9 +223,7 @@ Scope {
           anchors.centerIn: parent
           visible: root.launcher.resultCount === 0
 
-          text: root.launcher.mode === "clipboard"
-            ? "Clipboard history is empty"
-            : "No matching applications"
+          text: root.launcher.mode === "clipboard" ? "Clipboard history is empty" : "No matching applications"
           color: AppLauncherConfig.captionColor
           font.family: AppLauncherConfig.fontFamily
           font.pixelSize: AppLauncherConfig.nameFontSize
