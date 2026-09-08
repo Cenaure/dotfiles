@@ -32,6 +32,9 @@ Column {
   spacing: AudioConfig.rowSpacing
 
   Text {
+    anchors.left: parent.left
+    anchors.leftMargin: AudioConfig.rowPadding
+
     text: root.label
     color: AudioConfig.sectionLabelColor
     font.family: AudioConfig.fontFamily
@@ -49,6 +52,7 @@ Column {
       id: mute
 
       anchors.left: parent.left
+      anchors.leftMargin: AudioConfig.controlInset
       anchors.verticalCenter: parent.verticalCenter
 
       implicitWidth: AudioConfig.muteButtonSize
@@ -69,6 +73,7 @@ Column {
       anchors.left: mute.right
       anchors.leftMargin: AudioConfig.rowSpacing
       anchors.right: parent.right
+      anchors.rightMargin: AudioConfig.rowPadding
       anchors.verticalCenter: parent.verticalCenter
 
       text: Services.Audio.labelOf(root.node)
@@ -92,7 +97,10 @@ Column {
   }
 
   LevelSlider {
-    width: parent.width
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.leftMargin: AudioConfig.rowPadding
+    anchors.rightMargin: AudioConfig.rowPadding
 
     value: root.node?.audio?.volume ?? 0
     enabled: !root.muted

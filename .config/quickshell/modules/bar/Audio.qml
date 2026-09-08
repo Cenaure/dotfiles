@@ -147,6 +147,9 @@ Item {
         spacing: AudioConfig.rowSpacing
 
         Text {
+          anchors.left: parent.left
+          anchors.leftMargin: AudioConfig.rowPadding
+
           text: AudioConfig.appsLabel
           color: AudioConfig.sectionLabelColor
           font.family: AudioConfig.fontFamily
@@ -189,6 +192,7 @@ Item {
               id: streamIcon
 
               anchors.left: parent.left
+              anchors.leftMargin: AudioConfig.rowPadding
               anchors.top: parent.top
 
               windowClass: root.audio.iconKeyOf(stream.modelData)
@@ -216,6 +220,7 @@ Item {
               id: streamMute
 
               anchors.right: parent.right
+              anchors.rightMargin: AudioConfig.controlInset
               anchors.top: parent.top
 
               implicitWidth: AudioConfig.muteButtonSize
@@ -238,6 +243,8 @@ Item {
             LevelSlider {
               anchors.left: parent.left
               anchors.right: parent.right
+              anchors.leftMargin: AudioConfig.rowPadding
+              anchors.rightMargin: AudioConfig.rowPadding
               anchors.bottom: parent.bottom
 
               value: stream.modelData.audio?.volume ?? 0
