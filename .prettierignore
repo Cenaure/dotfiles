@@ -1,0 +1,10 @@
+.git/
+.idea/
+.github/
+wallpapers/
+
+# Vendored upstream library: keep it byte-identical so it can be re-pulled.
+.config/quickshell/modules/common/functions/fuzzysort.js
+
+# Written back by quickshell at runtime, so reformatting only creates diff noise.
+.config/quickshell/state/
