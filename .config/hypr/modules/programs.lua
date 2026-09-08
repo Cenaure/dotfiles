@@ -2,6 +2,9 @@ local M = {}
 
 M.terminal = "kitty"
 M.fileManager = "nautilus"
-M.menu = "/home/cenaure/.config/rofi/launchers/type-6/launcher.sh"
+-- The quickshell app launcher, toggled over its IpcHandler rather than
+-- spawned: the shell is already running, so this just flips its state.
+M.menu = "qs ipc call appLauncher toggle"
+M.themeSwitcher = "qs ipc call themeSwitcher toggle"
 
 return M
