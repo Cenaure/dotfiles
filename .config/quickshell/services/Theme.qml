@@ -23,6 +23,11 @@ Singleton {
   property color secondary: theme.adapter.colors.secondary
   property color disabled: theme.adapter.colors.disabled
 
+  // The active theme's wallpaper as a plain path. The lock screen shows the
+  // same picture the desktop is showing, and the filename only exists inside
+  // the theme file until something publishes it.
+  readonly property string wallpaperUrl: root.wallpaperUrlFor(theme.adapter.wallpaper)
+
   // awww transition used when a theme is applied. Kept here rather than in a
   // config singleton so that Theme has no import cycle with the configs, which
   // read colors from it.
