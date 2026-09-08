@@ -1,0 +1,5 @@
+#!/bin/bash
+swww img ./backgrounds/shorekeeper.png \
+  --transition-type random \
+  --transition-fps 144
+
