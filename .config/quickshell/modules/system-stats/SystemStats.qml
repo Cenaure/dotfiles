@@ -12,10 +12,10 @@ import qs.services as Services
 
 // CPU and memory load, on the bare desktop only.
 //
-// Appears on the same terms as the media panel and stacks under it: when music
-// starts, this slides down to make room, and slides back up when it stops. The
-// media panel publishes its height to Services.Desktop, which is the only thing
-// the two modules share.
+// Sits beside the media card as one row: when music starts this slides left to
+// make room for it, and slides back to the middle when it stops. The row is
+// centred as a whole, so the only thing the two modules share is whether the
+// media card is there at all, which it publishes to Services.Desktop.
 Scope {
   id: root
 
@@ -24,23 +24,33 @@ Scope {
 
   readonly property bool shouldShow: root.desktop.workspaceEmpty
 
-  // Top of the stack, level with where the media panel starts.
-  readonly property real stackTop: BarConfig.margin[0] + BarConfig.height
-    + SystemStatsConfig.topGap
+  // The row is as wide as what is actually in it, and centred as a whole. With
+  // the media card up that is both cards and a gap; without it, just this one.
+  readonly property real rowWidth: SystemStatsConfig.panelWidth
+    + (root.desktop.mediaVisible
+      ? MediaConfig.panelWidth + DesktopConfig.rowSpacing
+      : 0)
 
-  // Slid down past the media panel when there is one. Animated here rather than
-  // in FloatingPanel, whose own position is deliberately not animated --- it
-  // has to be able to correct itself silently when the surface is first laid
-  // out.
-  property real stackY: root.stackTop + (root.desktop.mediaVisible
-    ? root.desktop.mediaHeight + SystemStatsConfig.stackSpacing
-    : 0)
+  // Right half of that row, or dead centre when there is no other half.
+  // Animated here rather than in FloatingPanel, whose own position is
+  // deliberately not animated --- it has to be able to correct itself silently
+  // when the surface is first laid out.
+  property real offsetX: (root.rowWidth - SystemStatsConfig.panelWidth) / 2
 
-  Behavior on stackY {
+  Behavior on offsetX {
     NumberAnimation {
-      duration: SystemStatsConfig.reflowDuration
+      duration: DesktopConfig.reflowDuration
       easing.type: Easing.OutQuint
     }
+  }
+
+  // Contributed to the row's resting height. Deliberately contentHeight, not
+  // panelHeight: panelHeight already has the row's floor folded into it, and
+  // feeding that back would be a loop.
+  Binding {
+    target: root.desktop
+    property: "statsRestingHeight"
+    value: panel.contentHeight
   }
 
   // Reading /proc costs nothing while nobody is looking at the numbers.
@@ -74,7 +84,10 @@ Scope {
     duration: SystemStatsConfig.animationDuration
     panelNamespace: "quickshell:systemStats"
 
-    anchorY: root.stackY
+    // Level with the media card: the two are a row, not a stack.
+    anchorY: BarConfig.margin[0] + BarConfig.height + DesktopConfig.topGap
+    offsetX: root.offsetX
+    minPanelHeight: root.desktop.rowHeight
 
     Column {
       id: content

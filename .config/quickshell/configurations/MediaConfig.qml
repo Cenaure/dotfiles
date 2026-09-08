@@ -48,6 +48,10 @@ Singleton {
   readonly property color timeColor: Services.Theme.disabled
   readonly property int timeSpacing: 6
 
+  // The transport only appears while the pointer is on the card. The card
+  // growing is what reveals it; this is just the fade over the top of that.
+  readonly property int controlsFadeDuration: 160
+
   // Transport
   readonly property int buttonSize: 28
   readonly property int primaryButtonSize: 34

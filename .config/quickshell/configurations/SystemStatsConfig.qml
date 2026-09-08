@@ -12,13 +12,7 @@ Singleton {
   readonly property int panelRadius: 28
   readonly property int panelPadding: 18
 
-  // Gap below the bar for the top of the stack, and between the panels in it.
-  readonly property int topGap: 10
-  readonly property int stackSpacing: 10
-
   readonly property int animationDuration: 280
-  // How the panel slides when the media panel above it appears or goes away.
-  readonly property int reflowDuration: 320
 
   readonly property color panelColor: Services.Theme.surface
 

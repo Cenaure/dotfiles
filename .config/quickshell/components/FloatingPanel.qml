@@ -61,8 +61,21 @@ Scope {
   // panel is always its full size, parked past the edge while closed.
   property bool slideIn: false
 
+  // Nudge off centre. A panel is centred on its screen by default; this is what
+  // lets two of them sit side by side as a row instead of on top of each other.
+  //
+  // Not animated here on purpose, for the same reason y is not: the position
+  // depends on the surface's width, which is zero until the compositor has
+  // given it one. Anything that wants the move animated should animate what it
+  // feeds in, the way modules/system-stats does.
+  property real offsetX: 0
+
   // Expanded state.
   property real panelWidth: 520
+  // A floor under the panel's height, for a card that has to match something
+  // beside it that is taller than its own contents. Content is pinned to the
+  // top, so the difference shows up as room at the bottom.
+  property real minPanelHeight: 0
   property real panelRadius: 28
   property real padding: 18
 
@@ -95,6 +108,12 @@ Scope {
   // panel remembers where you actually were and puts it back.
   property bool keepWorkspace: true
 
+  // True while the pointer is over the panel itself --- the whole rounded card,
+  // padding included, not just the contents. Content that should only appear
+  // under the pointer binds to this rather than putting a handler on itself,
+  // which would leave the padding as a dead border that drops the hover.
+  readonly property bool hovered: panelHover.hovered
+
   signal keyPressed(var event)
 
   default property alias content: contentItem.data
@@ -113,7 +132,16 @@ Scope {
 
   // -------------------------------------------------------------- internals --
 
-  readonly property real panelHeight: Math.max(root.anchorHeight, contentItem.implicitHeight + root.padding * 2)
+  // What the contents alone ask for, before any floor is applied. Anything
+  // publishing its height so that another panel can match it has to publish
+  // this rather than panelHeight: feeding a floored height back in as the floor
+  // is a loop.
+  readonly property real contentHeight: contentItem.implicitHeight
+    + root.padding * 2
+
+  readonly property real panelHeight: Math.max(root.anchorHeight,
+    root.minPanelHeight,
+    root.contentHeight)
 
   property bool windowVisible: false
 
@@ -258,7 +286,7 @@ Scope {
         // defaults these equal it and nothing changes.
         bottomLeftRadius: shell.atFullSize ? root.panelBottomRadius : root.anchorBottomRadius
         bottomRightRadius: shell.bottomLeftRadius
-        x: (parent.width - width) / 2
+        x: (parent.width - width) / 2 + root.offsetX
         // Growing upward means keeping the bottom edge put, which falls out of
         // subtracting the animating height from a fixed baseline.
         //
@@ -344,6 +372,10 @@ Scope {
 
         MouseArea {
           anchors.fill: parent
+        }
+
+        HoverHandler {
+          id: panelHover
         }
 
         Item {

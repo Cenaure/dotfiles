@@ -4,8 +4,6 @@ import QtQuick.Layouts
 import qs.services as Services
 import qs.configurations
 
-import "../../components"
-
 PanelWindow {
   id: bar
 
@@ -27,7 +25,6 @@ PanelWindow {
 
   implicitHeight: BarConfig.height
 
-
   Rectangle {
     id: background
     anchors.fill: parent
@@ -40,7 +37,6 @@ PanelWindow {
         top: parent.top
         bottom: parent.bottom
       }
-      width: 100
 
       Date {}
     }
@@ -49,7 +45,6 @@ PanelWindow {
       id: centerSection
       anchors.centerIn: parent
       height: parent.height
-
       HyprlandWorkspaces {}
     }
 
@@ -60,8 +55,23 @@ PanelWindow {
         top: parent.top
         bottom: parent.bottom
       }
+      spacing: BarConfig.rightSectionSpacing
 
-      width: 100
+      SystemTray {
+        Layout.alignment: Qt.AlignVCenter
+      }
+
+      Network {
+        Layout.alignment: Qt.AlignVCenter
+      }
+
+      Audio {
+        Layout.alignment: Qt.AlignVCenter
+      }
+
+      Battery {
+        Layout.alignment: Qt.AlignVCenter
+      }
     }
   }
 }

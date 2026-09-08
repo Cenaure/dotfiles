@@ -18,6 +18,18 @@ Column {
 
   readonly property var media: Services.MediaPlayer
 
+  // The transport is held back until the pointer is on the card: at rest this
+  // is something you read, and the buttons are only wanted once you reach for
+  // them. The footer keeps its height either way, so the card does not resize
+  // under the pointer as they appear.
+  property bool showControls: true
+
+  // How tall the card is with the transport put away. Published upward so the
+  // row can be sized on the cards at rest --- using the live height would let
+  // hovering this one drag the other one taller with it.
+  readonly property real restingHeight: root.implicitHeight
+    - (controlsArea.visible ? controlsArea.height + root.spacing : 0)
+
   width: parent.width
   spacing: MediaConfig.sectionSpacing
 
@@ -244,51 +256,86 @@ Column {
     }
   }
 
-  // Divider
-  Rectangle {
-    implicitHeight: 1
-    implicitWidth: parent.width
-    color: Services.Theme.disabled
-    opacity: 0.35
-  }
-
+  // Divider and transport, which take up no room at all until the pointer is on
+  // the card: while collapsed this is zero-height and invisible, so the Column
+  // drops its spacing too and the card sits at its resting size.
+  //
+  // The reveal is the panel growing, not this expanding --- the contents snap
+  // to full size and FloatingPanel animates its own height into them, clipping
+  // as it goes. Animating both would have the card chasing its contents.
   Item {
-    id: footer
+    id: controlsArea
 
     width: parent.width
-    height: 32
+    height: root.showControls ? controlsColumn.implicitHeight : 0
+    visible: controlsArea.height > 0
+    clip: true
 
-    RowLayout {
-      id: controls
+    // Nothing invisible should still be clickable.
+    enabled: root.showControls
 
-      anchors.horizontalCenter: parent.horizontalCenter
-      anchors.verticalCenter: parent.verticalCenter
+    // Softens the moment the buttons are still half past the growing edge.
+    opacity: root.showControls ? 1 : 0
 
-      spacing: MediaConfig.buttonSpacing
+    Behavior on opacity {
+      NumberAnimation {
+        duration: MediaConfig.controlsFadeDuration
+        easing.type: Easing.OutCubic
+      }
+    }
 
-      MediaButton {
-        Layout.alignment: Qt.AlignVCenter
+    Column {
+      id: controlsColumn
 
-        icon: MediaConfig.previousIcon
-        enabled: root.media.canGoPrevious
-        onActivated: root.media.previous()
+      width: parent.width
+      spacing: MediaConfig.sectionSpacing
+
+      Rectangle {
+        implicitHeight: 1
+        implicitWidth: parent.width
+        color: Services.Theme.disabled
+        opacity: 0.35
       }
 
-      MediaButton {
-        Layout.alignment: Qt.AlignVCenter
+      Item {
+        id: footer
 
-        primary: true
-        icon: root.media.playing ? MediaConfig.pauseIcon : MediaConfig.playIcon
-        enabled: root.media.canTogglePlaying
-        onActivated: root.media.togglePlaying()
-      }
+        width: parent.width
+        height: 32
 
-      MediaButton {
-        Layout.alignment: Qt.AlignVCenter
+        RowLayout {
+          id: controls
 
-        icon: MediaConfig.nextIcon
-        enabled: root.media.canGoNext
-        onActivated: root.media.next()
+          anchors.horizontalCenter: parent.horizontalCenter
+          anchors.verticalCenter: parent.verticalCenter
+
+          spacing: MediaConfig.buttonSpacing
+
+          MediaButton {
+            Layout.alignment: Qt.AlignVCenter
+
+            icon: MediaConfig.previousIcon
+            enabled: root.media.canGoPrevious
+            onActivated: root.media.previous()
+          }
+
+          MediaButton {
+            Layout.alignment: Qt.AlignVCenter
+
+            primary: true
+            icon: root.media.playing ? MediaConfig.pauseIcon : MediaConfig.playIcon
+            enabled: root.media.canTogglePlaying
+            onActivated: root.media.togglePlaying()
+          }
+
+          MediaButton {
+            Layout.alignment: Qt.AlignVCenter
+
+            icon: MediaConfig.nextIcon
+            enabled: root.media.canGoNext
+            onActivated: root.media.next()
+          }
+        }
       }
     }
   }

@@ -22,18 +22,28 @@ Scope {
   readonly property bool shouldShow: Services.Desktop.workspaceEmpty
     && root.media.active
 
-  // Published so that whatever stacks beneath this --- the system stats panel
-  // --- can slide down out of its way rather than being covered by it.
+  // Published so the rest of the row --- the system stats card --- can re-centre
+  // around this one rather than being sat on top of.
   Binding {
     target: Services.Desktop
     property: "mediaVisible"
     value: root.shouldShow
   }
 
+  // The desktop row: this card, a gap, then the stats card. The media card only
+  // ever appears while the stats card is up, so the row is always both of them
+  // and this offset is fixed --- it is the other card that has to move when this
+  // one comes and goes.
+  readonly property real rowWidth: MediaConfig.panelWidth
+    + DesktopConfig.rowSpacing
+    + SystemStatsConfig.panelWidth
+
+  // This card's share of the row's resting height. The card reports itself with
+  // the transport put away, so hovering grows only this panel.
   Binding {
     target: Services.Desktop
-    property: "mediaHeight"
-    value: panel.panelHeight
+    property: "mediaRestingHeight"
+    value: card.restingHeight + panel.padding * 2
   }
 
   onShouldShowChanged: {
@@ -60,8 +70,21 @@ Scope {
     duration: MediaConfig.animationDuration
     panelNamespace: "quickshell:media"
 
-    anchorY: BarConfig.margin[0] + BarConfig.height + 10
+    anchorY: BarConfig.margin[0] + BarConfig.height + DesktopConfig.topGap
 
-    MediaCard {}
+    // Left half of the row, measured from the row being centred as a whole.
+    offsetX: (MediaConfig.panelWidth - root.rowWidth) / 2
+
+    // At rest the two cards in the row are the same height; the transport
+    // appearing on hover is what makes this one taller than the other.
+    minPanelHeight: Services.Desktop.rowHeight
+
+    MediaCard {
+      id: card
+
+      // The panel knows about the whole card, padding included; a handler on
+      // the contents would leave that padding as a dead border.
+      showControls: panel.hovered
+    }
   }
 }
