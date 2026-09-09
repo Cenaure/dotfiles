@@ -1,6 +1,6 @@
 # <img src=".github/sticker.png" width="30" align="center"> Cenaure dotfiles
 
-A small cozy [Hyprland](https://hyprland.org/) and quickshell configuration for Arch Linux.
+A small cozy [Hyprland](https://hyprland.org/) and quickshell configuration for Arch Linux. With two themes: girls last tour and shorekeeper. You can easily add any theme you want by editing theme configs.
 
 ![Screenshot](.github/glt-theme.png)
 
@@ -61,9 +61,11 @@ Quickshell Widgets:
 <details>
 <summary>Themes!</summary>
 
+Shorekeeper theme:
 ![BarImage](.github/shorekeeper-theme.png)
 ![BarImage](.github/kitty-shorekeeper-theme.png)
 
+Girls Last Tour theme:
 ![BarImage](.github/glt-theme.png)
 ![BarImage](.github/kitty-glt-theme.png)
 
