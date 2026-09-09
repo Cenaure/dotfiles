@@ -27,8 +27,7 @@ Column {
   // How tall the card is with the transport put away. Published upward so the
   // row can be sized on the cards at rest --- using the live height would let
   // hovering this one drag the other one taller with it.
-  readonly property real restingHeight: root.implicitHeight
-    - (controlsArea.visible ? controlsArea.height + root.spacing : 0)
+  readonly property real restingHeight: root.implicitHeight - (controlsArea.visible ? controlsArea.height + root.spacing : 0)
 
   width: parent.width
   spacing: MediaConfig.sectionSpacing
@@ -98,7 +97,7 @@ Column {
 
         text: root.media.title || "Nothing playing"
         color: MediaConfig.titleColor
-        font.families: MediaConfig.textFonts
+        font.family: MediaConfig.textFontFamily(text)
         font.pixelSize: MediaConfig.titleSize
         font.weight: 700
         font.letterSpacing: 0.7
@@ -111,7 +110,7 @@ Column {
         visible: root.media.subtitle !== ""
         text: root.media.subtitle
         color: MediaConfig.subtitleColor
-        font.families: MediaConfig.textFonts
+        font.family: MediaConfig.textFontFamily(text)
         font.pixelSize: MediaConfig.subtitleSize
         elide: Text.ElideRight
       }

@@ -102,14 +102,13 @@ Singleton {
   readonly property string batteryIconFontFamily: "Material Symbols Outlined"
 
   // Empty to full, chosen by rounding the level across the list.
-  readonly property list<string> batteryIcons: [
-    "",  // battery_0_bar
-    "",  // battery_1_bar
-    "",  // battery_2_bar
-    "",  // battery_3_bar
-    "",  // battery_4_bar
-    "",  // battery_5_bar
-    ""   // battery_6_bar
+  readonly property list<string> batteryIcons: [""  // battery_0_bar
+    , ""  // battery_1_bar
+    , ""  // battery_2_bar
+    , ""  // battery_3_bar
+    , ""  // battery_4_bar
+    , ""  // battery_5_bar
+    , ""   // battery_6_bar
   ]
 
   readonly property string batteryFullIcon: ""      // battery_full
@@ -122,7 +121,7 @@ Singleton {
 
   // Surfaces that drop out of a bar widget: a tray item's menu, the network
   // list. Shared so the two look like the same thing in two places.
-  readonly property int popupGap: 168
+  readonly property int popupGap: 16
   readonly property int popupScreenMargin: 8
   readonly property int popupPadding: 8
   readonly property int popupRadius: 16

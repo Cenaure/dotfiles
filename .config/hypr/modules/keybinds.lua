@@ -7,6 +7,7 @@ local menu = programs.menu
 local themeSwitcher = programs.themeSwitcher
 local notificationsCenter = programs.notificationsCenter
 local powerMenu = programs.powerMenu
+local shellToggle = programs.shellToggle
 
 -- Application and window controls
 hl.bind(mainMod .. " + Return", hl.dsp.exec_cmd(terminal))
@@ -21,6 +22,7 @@ hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen({ mode = "fullscreen", actio
 hl.bind(mainMod .. " + SUPER_L", hl.dsp.exec_cmd(menu))
 hl.bind(mainMod .. " + T", hl.dsp.exec_cmd(themeSwitcher))
 hl.bind(mainMod .. " + N", hl.dsp.exec_cmd(notificationsCenter))
+hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(shellToggle))
     
 -- Screenshots
 hl.bind("PRINT", hl.dsp.exec_cmd("hyprshot -m window"))

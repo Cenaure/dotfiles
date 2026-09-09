@@ -86,11 +86,20 @@ Singleton {
   // A track title is the one string in the shell that is written by somebody
   // else, so it is the one place that has to render scripts the UI font has
   // never heard of. Adwaita Sans carries no kana or kanji at all, and leaving
-  // the gap to fontconfig picks a CJK face by locale --- which on an English
-  // system draws Japanese kanji in their Simplified Chinese forms, since the
-  // two scripts share codepoints but not shapes. Naming the JP face second
-  // keeps Latin text in Adwaita and hands only the characters it lacks to a
-  // font that draws them the Japanese way.
+  // the gap to fontconfig picks a CJK face by locale --- here `fc-match
+  // sans:lang=ja` lands on the Korean face of the Noto CJK collection, which
+  // draws Japanese kanji in the wrong regional forms, since the scripts share
+  // codepoints but not shapes.
+  //
+  // QML's font value type has no `families` list --- only a single `family`
+  // string, and it is not comma-separated --- so the choice has to be made per
+  // string instead of per character: a title with any kana or kanji in it is
+  // set whole in the Japanese face, and everything else stays in Adwaita.
   readonly property string japaneseFontFamily: "Noto Sans CJK JP"
-  readonly property list<string> textFonts: [root.fontFamily, root.japaneseFontFamily]
+
+  readonly property var japanesePattern: /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uff66-\uff9d]/
+
+  function textFontFamily(text: string): string {
+    return root.japanesePattern.test(text) ? root.japaneseFontFamily : root.fontFamily;
+  }
 }
