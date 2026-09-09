@@ -122,7 +122,7 @@ Singleton {
 
   // Surfaces that drop out of a bar widget: a tray item's menu, the network
   // list. Shared so the two look like the same thing in two places.
-  readonly property int popupGap: 16
+  readonly property int popupGap: 168
   readonly property int popupScreenMargin: 8
   readonly property int popupPadding: 8
   readonly property int popupRadius: 16

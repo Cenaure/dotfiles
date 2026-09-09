@@ -10,10 +10,9 @@ Singleton {
 
   // Tiles. Three of them in a row, sized like wlogout's cells: wider than they
   // are tall, glyph over label.
-  readonly property int tileWidth: 132
+  readonly property int tileWidth: 116
   readonly property int tileHeight: 116
-  readonly property int tileSpacing: 12
-  readonly property int tileRadius: 18
+  readonly property int tileSpacing: 18
   readonly property int tileBorderWidth: 1
 
   readonly property int glyphSize: 40
@@ -27,7 +26,7 @@ Singleton {
   readonly property int panelRadius: 26
   // Flush with the bottom screen edge, square down there: the same treatment
   // the app launcher gets, so both bottom surfaces read as one family.
-  readonly property int bottomMargin: 0
+  readonly property int bottomMargin: 10
   readonly property int panelBottomRadius: 0
 
   // Collapsed state the panel is parked at while closed. Unused for shape --
@@ -41,7 +40,8 @@ Singleton {
 
   // Colors. An opaque card over an arbitrary wallpaper, so everything inside
   // contrasts against the surface rather than the desktop.
-  readonly property color panelColor: Services.Theme.surface
+  readonly property color buttonColor: Services.Theme.surface
+  readonly property color panelColor: "transparent"
   readonly property color glyphColor: Services.Theme.foregroundSurface
   readonly property color labelColor: Services.Theme.disabled
   readonly property color borderColor: Services.Theme.disabled
@@ -53,17 +53,12 @@ Singleton {
   // attention, the same way the launcher's selection capsule does.
   readonly property color selectedColor: Qt.rgba(Services.Theme.active.r, Services.Theme.active.g, Services.Theme.active.b, 0.18)
 
-  readonly property real idleBorderOpacity: 0.32
+  readonly property real idleBorderOpacity: 1
 
   readonly property string fontFamily: "AnnotationM Nerd Font"
   readonly property string iconFontFamily: "Material Symbols Outlined"
 
   // ------------------------------------------------------------- actions --
-
-  // Resolved from this file rather than through $HOME, so the shell keeps
-  // working when run out of a checkout that is not the installed one --- the
-  // same unwrapping Services.Theme has to do for its scripts.
-  readonly property string lockScript: Qt.resolvedUrl("../scripts/lock.bash").toString().replace(/^file:\/\//, "")
 
   // Keybinds match wlogout's layout file, so the letters you already press
   // still work.
@@ -74,7 +69,8 @@ Singleton {
       // lock
       icon: "\ue88d",
       key: Qt.Key_L,
-      command: [root.lockScript]
+
+      command: ["loginctl", "lock-session"]
     },
     {
       id: "shutdown",

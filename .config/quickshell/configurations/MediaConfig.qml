@@ -6,6 +6,8 @@ import QtQuick
 import qs.services as Services
 
 Singleton {
+  id: root
+
   // Panel
   readonly property int panelWidth: 380
   readonly property int anchorWidth: 184
@@ -80,4 +82,15 @@ Singleton {
 
   readonly property string fontFamily: "Adwaita Sans"
   readonly property string iconFontFamily: "Material Symbols Rounded"
+
+  // A track title is the one string in the shell that is written by somebody
+  // else, so it is the one place that has to render scripts the UI font has
+  // never heard of. Adwaita Sans carries no kana or kanji at all, and leaving
+  // the gap to fontconfig picks a CJK face by locale --- which on an English
+  // system draws Japanese kanji in their Simplified Chinese forms, since the
+  // two scripts share codepoints but not shapes. Naming the JP face second
+  // keeps Latin text in Adwaita and hands only the characters it lacks to a
+  // font that draws them the Japanese way.
+  readonly property string japaneseFontFamily: "Noto Sans CJK JP"
+  readonly property list<string> textFonts: [root.fontFamily, root.japaneseFontFamily]
 }

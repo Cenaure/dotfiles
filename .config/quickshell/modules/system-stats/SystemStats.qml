@@ -107,6 +107,12 @@ Scope {
           label: "CPU"
           value: root.usage.cpuUsage
           valueText: root.usage.formatPercent(root.usage.cpuUsage)
+          valueSuffix: root.usage.hasTemperature
+            ? root.usage.formatTemperature(root.usage.temperature)
+            : ""
+          valueSuffixColor: root.usage.temperature >= SystemStatsConfig.temperatureWarning
+            ? SystemStatsConfig.temperatureWarningColor
+            : SystemStatsConfig.valueSuffixColor
           detail: root.usage.coreCount > 0
             ? `${root.usage.coreCount} cores`
             : ""

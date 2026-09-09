@@ -26,9 +26,21 @@ Singleton {
   readonly property int valueSize: 22
   readonly property int detailSize: 10
 
+  // Trailing reading beside the big number --- deliberately smaller, so the
+  // percentage stays the thing the eye lands on first.
+  readonly property int valueSuffixSize: 12
+  readonly property int valueSuffixSpacing: 6
+
   readonly property color labelColor: Services.Theme.disabled
   readonly property color valueColor: Services.Theme.foregroundSurface
   readonly property color detailColor: Services.Theme.disabled
+  readonly property color valueSuffixColor: Services.Theme.disabled
+
+  // CPU temperature, shown beside the load percentage. Past the threshold it
+  // turns, on the same reasoning as the bar below it: a machine running hot
+  // should say so without the number having to be read.
+  readonly property real temperatureWarning: 80
+  readonly property color temperatureWarningColor: "#e0707e"
 
   readonly property int barHeight: 4
   readonly property int barRadius: 2

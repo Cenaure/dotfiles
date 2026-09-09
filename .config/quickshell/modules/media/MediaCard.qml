@@ -98,7 +98,7 @@ Column {
 
         text: root.media.title || "Nothing playing"
         color: MediaConfig.titleColor
-        font.family: MediaConfig.fontFamily
+        font.families: MediaConfig.textFonts
         font.pixelSize: MediaConfig.titleSize
         font.weight: 700
         font.letterSpacing: 0.7
@@ -111,7 +111,7 @@ Column {
         visible: root.media.subtitle !== ""
         text: root.media.subtitle
         color: MediaConfig.subtitleColor
-        font.family: MediaConfig.fontFamily
+        font.families: MediaConfig.textFonts
         font.pixelSize: MediaConfig.subtitleSize
         elide: Text.ElideRight
       }

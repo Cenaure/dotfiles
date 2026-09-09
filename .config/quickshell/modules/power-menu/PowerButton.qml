@@ -26,14 +26,18 @@ Item {
     id: cell
 
     anchors.fill: parent
-    radius: PowerMenuConfig.tileRadius
+    radius: height / 2
 
-    color: root.selected ? PowerMenuConfig.selectedColor : "transparent"
-    border.width: PowerMenuConfig.tileBorderWidth
-    border.color: root.selected ? PowerMenuConfig.selectedBorderColor : PowerMenuConfig.borderColor
-    // An unselected cell is only outlined enough to read as a target; the
-    // selected one takes its border at full strength.
-    opacity: root.selected ? 1 : PowerMenuConfig.idleBorderOpacity
+    color: PowerMenuConfig.buttonColor
+
+    border.width: root.selected ? PowerMenuConfig.tileBorderWidth : 0
+    border.color: PowerMenuConfig.selectedBorderColor
+    
+    Rectangle {
+      anchors.fill: parent
+      radius: height / 2
+      color: root.selected ? PowerMenuConfig.selectedColor : "transparent"
+    }
 
     Behavior on color {
       ColorAnimation {

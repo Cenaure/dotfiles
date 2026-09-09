@@ -6,9 +6,10 @@ import Quickshell.Io
 
 // CPU and memory load, read straight out of /proc.
 //
-// No subprocesses: FileView reads procfs correctly, and reload() re-reads it
-// even though the file's mtime never changes, so a poll costs two reads rather
-// than two forks. That matters because this polls while a widget is up.
+// No subprocesses in the poll: FileView reads procfs and sysfs correctly, and
+// reload() re-reads them even though their mtime never changes, so a sample
+// costs a few reads rather than a few forks. That matters because this polls
+// while a widget is up. The one fork is a single sensor lookup, run once.
 //
 // Nothing is read at all unless `tracking` is set. The stats panel turns it on
 // while it is on screen and off the moment it goes away, so an idle shell does
@@ -44,6 +45,54 @@ Singleton {
     ? Math.min(1, Math.max(0, root.memoryUsed / root.memoryTotal))
     : 0
 
+  // ----------------------------------------------------------- temperature --
+
+  // Degrees Celsius, 0 until a sensor has been found and read once.
+  property real temperature: 0
+
+  readonly property bool hasTemperature: root.temperature > 0
+
+  // hwmon numbers are handed out in probe order at boot, so hwmon5 being the
+  // CPU today says nothing about tomorrow. The sensor is looked up by driver
+  // name instead, once, and the resulting path reused from then on.
+  property string temperaturePath: ""
+  property bool temperatureResolved: false
+
+  // Preferred drivers first, and within one, the die/package reading rather
+  // than whatever temp1 happens to be. Falls back to the driver's first
+  // sensor, which on a CPU driver is still a CPU temperature.
+  readonly property string sensorLookupScript: `
+    for driver in k10temp zenpower coretemp cpu_thermal; do
+      for hwmon in /sys/class/hwmon/*; do
+        [ "$(cat "$hwmon/name" 2>/dev/null)" = "$driver" ] || continue
+
+        for label in "$hwmon"/temp*_label; do
+          case "$(cat "$label" 2>/dev/null)" in
+            Tctl|Tdie|"Package id 0")
+              echo "\${label%_label}_input"
+              exit 0
+              ;;
+          esac
+        done
+
+        if [ -e "$hwmon/temp1_input" ]; then
+          echo "$hwmon/temp1_input"
+          exit 0
+        fi
+      done
+    done
+  `
+
+  Process {
+    id: sensorLookup
+
+    command: ["sh", "-c", root.sensorLookupScript]
+
+    stdout: StdioCollector {
+      onStreamFinished: root.temperaturePath = this.text.trim()
+    }
+  }
+
   // ---------------------------------------------------------------- polling --
 
   FileView {
@@ -61,6 +110,15 @@ Singleton {
     id: memoryFile
 
     path: "/proc/meminfo"
+    preload: false
+    blockLoading: true
+    printErrors: false
+  }
+
+  FileView {
+    id: temperatureFile
+
+    path: root.temperaturePath
     preload: false
     blockLoading: true
     printErrors: false
@@ -92,8 +150,18 @@ Singleton {
   }
 
   onTrackingChanged: {
-    if (root.tracking)
+    if (root.tracking) {
+      // Deferred to the first time anyone looks, so a shell whose stats panel
+      // is never opened never forks at all. A machine with no CPU sensor
+      // resolves to an empty path, which is remembered so it is not retried on
+      // every open.
+      if (!root.temperatureResolved) {
+        root.temperatureResolved = true;
+        sensorLookup.running = true;
+      }
+
       return;
+    }
 
     // A delta measured across the gap while nothing was watching would describe
     // minutes of history as if it were the last two seconds, so the baseline is
@@ -104,11 +172,16 @@ Singleton {
       usage: 0,
       cores: []
     };
+
+    // Temperature is an instantaneous reading rather than a delta, so a stale
+    // one is merely a little old instead of wrong. It is kept, so reopening
+    // the panel shows a number immediately instead of flashing an empty slot.
   }
 
   function sample() {
     root.sampleCpu();
     root.sampleMemory();
+    root.sampleTemperature();
   }
 
   // ------------------------------------------------------------------ parse --
@@ -213,6 +286,26 @@ Singleton {
     root.memoryUsed = Math.max(0, total - available);
   }
 
+  function sampleTemperature() {
+    if (root.temperaturePath === "")
+      return;
+
+    temperatureFile.reload();
+
+    const text = temperatureFile.text();
+
+    if (!text)
+      return;
+
+    // hwmon reports millidegrees.
+    const millidegrees = Number(text.trim());
+
+    if (!isFinite(millidegrees) || millidegrees <= 0)
+      return;
+
+    root.temperature = millidegrees / 1000;
+  }
+
   // ----------------------------------------------------------------- format --
 
   function formatBytes(bytes: real): string {
@@ -230,6 +323,15 @@ Singleton {
 
     // One decimal is enough to watch memory move without the number jittering.
     return `${value < 10 ? value.toFixed(1) : Math.round(value)} ${units[unit]}`;
+  }
+
+  function formatTemperature(celsius: real): string {
+    if (!isFinite(celsius) || celsius <= 0)
+      return "";
+
+    // Whole degrees: the tenths a sensor reports move constantly and say
+    // nothing worth reading at a glance.
+    return `${Math.round(celsius)}°C`;
   }
 
   function formatPercent(fraction: real): string {

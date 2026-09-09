@@ -24,11 +24,13 @@ BACKUP_DIR="$CONFIG_DIR-backup/$(date +%Y%m%d-%H%M%S)"
 
 # Everything below is in the official repositories, verified with `pacman -Si`.
 REPO_PACKAGES=(
+    # hypr/ is written in Lua, which only a Hyprland new enough to read
+    # hyprland.lua understands. `--needed` will not upgrade an older one that is
+    # already installed, so on such a system run `pacman -Syu` first.
     hyprland
     quickshell
     awww
     kitty
-    waybar
     wl-clipboard
     # Clipboard history for the quickshell launcher, fed by the wl-paste
     # watchers in the Hyprland autostart.
@@ -39,24 +41,50 @@ REPO_PACKAGES=(
     # into kitty's colour overrides.
     jq
     nautilus
+    # Mounting, trash and network shares for nautilus, which has none of its own.
+    gvfs
+    # Automounts removable drives; started from the Hyprland autostart.
+    udiskie
+    # Asks for the password udiskie and friends need. Nothing else on a bare
+    # system provides a polkit agent, so without it mounting silently fails.
+    hyprpolkitagent
     brightnessctl
     playerctl
+    # wpctl, behind the volume and mic keybinds. Pulls in pipewire itself.
     wireplumber
+    # The PulseAudio side of pipewire, which is what ordinary applications and
+    # pavucontrol talk to.
+    pipewire-pulse
+    # The full mixer, opened from the quickshell audio panel (services/Audio.qml).
+    pavucontrol
+    # Screen sharing and portal-based file pickers. Hyprland does not depend on
+    # it, so it has to be asked for.
+    xdg-desktop-portal-hyprland
     qt5ct
     qt6ct
     kvantum
     breeze-icons
     gsettings-desktop-schemas
+    # The GTK theme hyprland.lua selects with gsettings. The theme is named
+    # adw-gtk3; the package that ships it is not.
+    adw-gtk-theme
+    # Fonts the configs name directly: the bar and launcher use AnnotationM,
+    # the media card uses Adwaita Sans, kitty uses JetBrains Mono.
     ttf-annotationmono-nerd
+    adwaita-fonts
+    ttf-jetbrains-mono-nerd
+    # Kana and kanji for the media card's track titles, which none of the fonts
+    # above cover. MediaConfig names the JP face directly.
+    noto-fonts-cjk
 )
 
 # AUR. yay and paru resolve repository packages too, so when one is present it
 # gets the whole list and this split only matters for the pacman-only path.
 AUR_PACKAGES=(
     hyprshot-git
-    vicinae-bin
-    adw-gtk3
-    # "Material Symbols Outlined", used for the UI glyphs in the quickshell bar.
+    # "Material Symbols Outlined", every glyph in the quickshell bar. Without it
+    # the shell comes up as a row of empty boxes, which is why a missing AUR
+    # helper is worth building one for rather than warning about.
     ttf-material-symbols-variable-git
 )
 
@@ -156,27 +184,81 @@ deploy() {
 
 # ----------------------------------------------------------------- packages --
 
+# pacman needs root. A base Arch install does not ship sudo, so whether it is
+# there has to be checked rather than assumed.
+as_root() {
+    if [[ $EUID -eq 0 ]]; then
+        "$@"
+    elif command -v sudo >/dev/null; then
+        sudo "$@"
+    else
+        die "installing packages needs root, and sudo is not installed. Run this as root, or install sudo first."
+    fi
+}
+
+aur_helper() {
+    local candidate
+    for candidate in yay paru; do
+        if command -v "$candidate" >/dev/null; then
+            printf '%s' "$candidate"
+            return 0
+        fi
+    done
+    return 1
+}
+
+# A bare Arch install has no AUR helper, and one of the AUR packages is the icon
+# font every glyph in the bar is drawn from --- skipping it leaves a shell full
+# of empty boxes. So one is built here the only way that needs no helper to
+# begin with: git and makepkg, which is exactly how you would bootstrap yay by
+# hand.
+bootstrap_aur_helper() {
+    if [[ $EUID -eq 0 ]]; then
+        warn "makepkg refuses to run as root, so no AUR helper can be built here."
+        return 1
+    fi
+
+    info "${BLUE}::${RESET} No AUR helper found. Building yay from the AUR..."
+
+    as_root pacman -S --needed --noconfirm git base-devel || return 1
+
+    local build
+    build="$(mktemp -d)"
+    # The clone and the build are the failure-prone half (no network, a broken
+    # PKGBUILD), so the tree is cleaned up either way rather than only on
+    # success.
+    trap 'rm -rf -- "$build"' RETURN
+
+    git clone --depth 1 https://aur.archlinux.org/yay-bin.git "$build/yay-bin" || return 1
+    # -s pulls the build dependencies, -i installs the result; makepkg calls
+    # sudo itself for both.
+    (cd "$build/yay-bin" && makepkg -si --noconfirm) || return 1
+
+    command -v yay >/dev/null
+}
+
 install_packages() {
     command -v pacman >/dev/null \
         || die "pacman not found. These configs target Arch Linux."
 
-    local helper=''
-    local candidate
-    for candidate in yay paru; do
-        if command -v "$candidate" >/dev/null; then
-            helper="$candidate"
-            break
-        fi
-    done
+    local helper
+    helper="$(aur_helper)" || helper=''
+
+    if [[ -z $helper ]] && bootstrap_aur_helper; then
+        helper="$(aur_helper)" || helper=''
+        info ''
+    fi
 
     if [[ -n $helper ]]; then
         info "${BLUE}::${RESET} Installing packages with $helper..."
         "$helper" -S --needed --noconfirm "${REPO_PACKAGES[@]}" "${AUR_PACKAGES[@]}"
     else
         info "${BLUE}::${RESET} Installing repository packages with pacman..."
-        sudo pacman -S --needed --noconfirm "${REPO_PACKAGES[@]}"
-        warn "No AUR helper (yay or paru) found, so these were skipped:"
+        as_root pacman -S --needed --noconfirm "${REPO_PACKAGES[@]}"
+        warn "No AUR helper (yay or paru) and none could be built, so these were skipped:"
         warn "  ${AUR_PACKAGES[*]}"
+        warn "The bar's icons come from ttf-material-symbols-variable-git and will"
+        warn "show as empty boxes until it is installed."
     fi
 }
 
@@ -332,5 +414,5 @@ if [[ -d $BACKUP_DIR ]]; then
 fi
 
 info ''
-info "${DIM}Hyprland picks up config changes on its own; restart quickshell and"
-info "waybar to pick up theirs (SUPER + M logs out if you want a clean start).${RESET}"
+info "${DIM}Hyprland picks up config changes on its own; restart quickshell to pick"
+info "up its own (SUPER + M logs out if you want a clean start).${RESET}"

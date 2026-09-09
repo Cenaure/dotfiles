@@ -15,6 +15,10 @@ Item {
   // Shown large above the bar. Passed in rather than derived from `value`, so
   // the caller decides how its own reading should read.
   property string valueText: ""
+  // Optional second reading, set small beside the big one and sharing its
+  // baseline --- a temperature next to a load percentage, say.
+  property string valueSuffix: ""
+  property color valueSuffixColor: SystemStatsConfig.valueSuffixColor
   property string detail: ""
 
   implicitHeight: column.implicitHeight
@@ -48,12 +52,45 @@ Item {
       }
     }
 
-    Text {
-      text: root.valueText
-      color: SystemStatsConfig.valueColor
-      font.family: SystemStatsConfig.fontFamily
-      font.pixelSize: SystemStatsConfig.valueSize
-      font.weight: 700
+    Item {
+      width: parent.width
+      height: value.height
+
+      Text {
+        id: value
+
+        anchors.left: parent.left
+
+        text: root.valueText
+        color: SystemStatsConfig.valueColor
+        font.family: SystemStatsConfig.fontFamily
+        font.pixelSize: SystemStatsConfig.valueSize
+        font.weight: 700
+      }
+
+      Text {
+        anchors.left: value.right
+        anchors.leftMargin: SystemStatsConfig.valueSuffixSpacing
+        anchors.right: parent.right
+        // Sat on the percentage's baseline rather than centred on it, so the
+        // two read as one line instead of as a number with something floating
+        // next to it.
+        anchors.baseline: value.baseline
+
+        visible: root.valueSuffix !== ""
+        text: root.valueSuffix
+        color: root.valueSuffixColor
+        font.family: SystemStatsConfig.fontFamily
+        font.pixelSize: SystemStatsConfig.valueSuffixSize
+        font.weight: 700
+        elide: Text.ElideRight
+
+        Behavior on color {
+          ColorAnimation {
+            duration: SystemStatsConfig.animationDuration
+          }
+        }
+      }
     }
 
     Item {
