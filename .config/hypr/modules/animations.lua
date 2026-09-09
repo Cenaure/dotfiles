@@ -1,10 +1,3 @@
--- ╔══════════════════════════════════════════════════════════════════╗
--- ║        S H O R E K E E P E R   —   P I A N O   E D I T I O N  ║
--- ║                                                                  ║
--- ║  "Each motion lands like a soft key — immediate, resonant,      ║
--- ║   then fades the way only beautiful things know how to."        ║
--- ╚══════════════════════════════════════════════════════════════════╝
-
 -- ── Bezier Curves ────────────────────────────────────────────────────
 
 -- easeOutQuint

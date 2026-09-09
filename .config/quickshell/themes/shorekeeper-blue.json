@@ -1,0 +1,21 @@
+{
+  "name": "Shorekeeper Blue",
+  "wallpaper": "shorekeeper.png",
+  "colors": {
+    "background": "transparent",
+    "surface": "#2b243d",
+    "foreground": "#ebd7f5",
+    "foregroundSurface": "#ebd7f5",
+    "active": "#bf7ee0",
+    "secondary": "#5d578c",
+    "disabled": "#606275",
+
+    "kitty": {
+      "surface": "#202033",
+      "foreground": "#e9e6f7",
+      "active": "#867ee0",
+      "secondary": "#5d578c",
+      "disabled": "#606275"
+    }
+  }
+}

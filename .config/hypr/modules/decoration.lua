@@ -2,6 +2,19 @@
 -- ### LOOK AND FEEL ###
 -- #####################
 
+-- Border colours are generated from the active quickshell theme by
+-- quickshell/scripts/themes/change-hyprland-colors.bash. The values below are
+-- the fallback: if that file has never been generated, or will not load, the
+-- config still comes up rather than failing on a missing require.
+local defaults = {
+    active_border = { "rgba(5b7fa6ff)", "rgba(3a5270ff)" },
+    active_border_angle = 135,
+    inactive_border = "rgba(2a335055)",
+}
+
+local ok, generated = pcall(require, "modules.colors")
+local colors = ok and generated or defaults
+
 hl.config({
     general = {
         gaps_in = 6,
@@ -11,14 +24,11 @@ hl.config({
 
         col = {
             active_border = {
-                colors = {
-                    "rgba(5b7fa6ff)",
-                    "rgba(3a5270ff)",
-                },
-                angle = 135,
+                colors = colors.active_border,
+                angle = colors.active_border_angle,
             },
 
-            inactive_border = "rgba(2a335055)",
+            inactive_border = colors.inactive_border,
         },
 
         resize_on_border = true,

@@ -3,19 +3,27 @@ local programs = require("modules.programs")
 local mainMod = "SUPER"
 local terminal = programs.terminal
 local fileManager = programs.fileManager
+local menu = programs.menu
+local themeSwitcher = programs.themeSwitcher
+local notificationsCenter = programs.notificationsCenter
+local powerMenu = programs.powerMenu
+local shellToggle = programs.shellToggle
 
 -- Application and window controls
 hl.bind(mainMod .. " + Return", hl.dsp.exec_cmd(terminal))
 hl.bind(mainMod .. " + Q", hl.dsp.window.close())
-hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("wlogout"))
+hl.bind(mainMod .. " + M", hl.dsp.exec_cmd(powerMenu))
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))
 hl.bind(mainMod .. " + V", hl.dsp.window.float({ action = "toggle" }))
-hl.bind(mainMod .. " + SUPER_L", hl.dsp.exec_cmd("vicinae toggle"))
 hl.bind(mainMod .. " + P", hl.dsp.window.pseudo({ action = "toggle" }))
 hl.bind(mainMod .. " + J", hl.dsp.layout("togglesplit"))
-hl.bind(mainMod .. " + R", hl.dsp.exec_cmd("~/.config/waybar/scripts/launch.sh"))
 hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen({ mode = "fullscreen", action = "toggle" }))
 
+hl.bind(mainMod .. " + SUPER_L", hl.dsp.exec_cmd(menu))
+hl.bind(mainMod .. " + T", hl.dsp.exec_cmd(themeSwitcher))
+hl.bind(mainMod .. " + N", hl.dsp.exec_cmd(notificationsCenter))
+hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(shellToggle))
+    
 -- Screenshots
 hl.bind("PRINT", hl.dsp.exec_cmd("hyprshot -m window"))
 hl.bind(mainMod .. " + PRINT", hl.dsp.exec_cmd("hyprshot -m output"))
@@ -40,6 +48,13 @@ hl.bind(mainMod .. " + mouse_up", hl.dsp.focus({ workspace = "e-1" }))
 
 -- Keyboard layout switch
 hl.bind(mainMod .. " + SPACE", hl.dsp.exec_cmd("hyprctl switchxkblayout all next"))
+
+-- Holding Alt shows the layout indicator next to the pointer. This goes through
+-- the global shortcut protocol rather than `qs ipc call` because it fires on
+-- every Alt press you ever make, Alt+Tab included: the protocol reports press
+-- and release straight to quickshell with no process to spawn. non_consuming
+-- leaves Alt itself working, the Alt+Shift layout toggle included.
+hl.bind("ALT_L", hl.dsp.global("quickshell:layoutPeek"), { non_consuming = true })
 
 -- Mouse binds: move / resize window by dragging (old bindm)
 hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag(), { mouse = true })
